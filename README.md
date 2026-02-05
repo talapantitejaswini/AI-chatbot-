@@ -1,21 +1,20 @@
  # AI-chatbot-Multi-source-AI-Chatbot
  
-## Problem Statement
+## 📌 Problem Statement
+
 People use different tools for different tasks like:
 
-chatting with an AI,
+-chatting with an AI,
 
-generating images,
+-generating images,
 
-summarizing YouTube videos,
+-summarizing YouTube videos,
 
-extracting summaries from PDFs,
+-extracting summaries from PDFs,
 
-…which wastes time switching apps and learning multiple interfaces.
+**Goal: Build one simple chatbot app where a user can do all these tasks from a single UI.**
 
-Goal: Build one simple chatbot app where a user can do all these tasks from a single UI.
-
-## Solution Approach
+## 💡 Solution Approach
 We build a Streamlit web app that acts as the front-end interface. Behind the scenes, a utils.py module handles all AI functions:
 
 LLM Chat → via Groq API
@@ -28,13 +27,13 @@ PDF summarization → extract text → summarize with LLM
 
 This modular approach makes the code easy to maintain and upgrade.
 
-## Project Features
+## 🚀 Project Features
 ✅ Text Chat with AI (multi-turn conversation) ✅ Image Generation from Prompt ✅ YouTube Video Summarization (using transcript) ✅ PDF Summarization (upload PDF and get summary) ✅ Clean UI with tabs/sections ✅ Environment variables for API keys (safe and professional) ✅ Error handling (no transcript, invalid links, empty PDF, etc.)
 
-## Folder structure
+## 📁 Folder structure
 MULTI SOURCE AI CHATBOT │ ├── .venv/ # Virtual environment │ ├── chatbot/ │ └── Chatbot/ │ │ │ ├── pycache/ # Python cache files │ │ │ ├── fonts/ # Custom fonts │ │ └── DejaVuSans.ttf │ │ │ ├── generated_images/ # AI generated images folder │ │ └── image.png │ │ │ ├── outputs/ # Output files (summaries, logs, etc.) │ │ │ ├── .env # Environment variables (API keys) │ │ │ ├── app.py # Main Streamlit application │ │ │ ├── auth.py # Authentication logic (login/signup) │ │ │ ├── users.py # User management (DB operations) │ │ │ ├── utils.py # Core AI utilities (chat, summarize, image) │ │ │ ├── database.db # SQLite database (users + chat history) │ │ │ └── generated_image.png # Sample/generated image │ ├── requirements.txt # Python dependencies └── README.md # Project documentation
 
-## File Descriptions
+## 📂 File Descriptions
 app.py
 
 Main Streamlit application
@@ -87,7 +86,11 @@ GROQ_API_KEY=your_groq_key_here HF_API_KEY=your_huggingface_key_here Step 5: Run
 ## Access the app
 ### Local URL:http://localhost:8502#
 
-## 🧑‍🎓 Author
-## 👩‍💻Tejaswini Talapanti Capstone Project - Multi Source AI Chatbot |January 2026
-### 🔗Github:https://github.com/talapantitejaswini 🔗Linkedin:www.linkedin.com/in/tejaswini-talapanti
-Multi-Source-AI-chatbot
+🧑‍🎓 Author
+
+👩‍💻Tejaswini Talapanti
+Capstone Project - Multi Source AI Chatbot
+Training Program | January 2026
+🔗Github:https://github.com/talapantitejaswini 
+🔗Linkedin:www.linkedin.com/in/tejaswini-talapanti
+
