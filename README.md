@@ -1,70 +1,83 @@
- # Multi-source-AI-Chatbot
+ # 🤖Multi-source-AI-Chatbot
  
 ## 📌 Problem Statement
 
-Existing chatbots are often limited to a single data source and fail to provide comprehensive and accurate responses. This project aims to develop a Multiple Source AI Chatbot that integrates information from various sources and delivers intelligent, context-aware responses through a unified conversational interface.
+Existing chatbots are often limited to a single data source and fail to provide comprehensive and accurate responses.An intelligent Multiple Source AI Chatbot that integrates data from various sources such as user queries, PDFs, YouTube videos, and AI image generation models. The system provides accurate, context-aware responses through a single conversational interface using modern AI technologies.
 
-**Goal: Build one simple chatbot app where a user can do all these tasks from a single UI.**
+**🎯Goal:To design and develop a Multiple Source AI Chatbot that intelligently retrieves, integrates, and presents information from multiple data sources, providing accurate, context-aware, and user-friendly conversational responses.**
 
 ## 💡 Solution Approach
-We build a Streamlit web app that acts as the front-end interface. Behind the scenes, a utils.py module handles all AI functions:
 
-LLM Chat → via Groq API
+The proposed solution involves designing a Multiple Source AI Chatbot that integrates data from various sources such as documents, databases, and web APIs. User queries are first processed using Natural Language Processing (NLP) techniques to understand intent and extract key information. Based on the query, relevant data is retrieved from multiple sources simultaneously.
 
-Image generation → via HuggingFace (Inference API) OR Diffusers (local)
-
-YouTube summarization → transcript → summarize with LLM
-
-PDF summarization → extract text → summarize with LLM
-
-This modular approach makes the code easy to maintain and upgrade.
+The retrieved information is then filtered, combined, and passed to an AI language model to generate a unified, context-aware response. The chatbot interface allows users to interact in natural language, while the backend ensures efficient data retrieval, response generation, and context management. This approach improves accuracy, scalability, and usability compared to single-source chatbots.
 
 ## 🚀 Project Features
-✅ Text Chat with AI (multi-turn conversation) ✅ Image Generation from Prompt ✅ YouTube Video Summarization (using transcript) ✅ PDF Summarization (upload PDF and get summary) ✅ Clean UI with tabs/sections ✅ Environment variables for API keys (safe and professional) ✅ Error handling (no transcript, invalid links, empty PDF, etc.)
 
-## 📁 Folder structure
-MULTI SOURCE AI CHATBOT │ ├── .venv/ # Virtual environment │ ├── chatbot/ │ └── Chatbot/ │ │ │ ├── pycache/ # Python cache files │ │ │ ├── fonts/ # Custom fonts │ │ └── DejaVuSans.ttf │ │ │ ├── generated_images/ # AI generated images folder │ │ └── image.png │ │ │ ├── outputs/ # Output files (summaries, logs, etc.) │ │ │ ├── .env # Environment variables (API keys) │ │ │ ├── app.py # Main Streamlit application │ │ │ ├── auth.py # Authentication logic (login/signup) │ │ │ ├── users.py # User management (DB operations) │ │ │ ├── utils.py # Core AI utilities (chat, summarize, image) │ │ │ ├── database.db # SQLite database (users + chat history) │ │ │ └── generated_image.png # Sample/generated image │ ├── requirements.txt # Python dependencies └── README.md # Project documentation
+💬Text Chat with AI (multi-turn conversation) 
+🖼️Image Generation from Prompt 
+🎥YouTube Video Summarization (using transcript) 
+📄PDF Summarization (upload PDF and get summary) 
+🔐 User authentication (Login & Signup)
+🗃️ Chat history storage using SQLite
+🌐 Interactive Streamlit-based UI
+✅ Clean UI with tabs/sections 
+✅ Environment variables for API keys (safe and professional) 
+✅ Error handling (no transcript, invalid links, empty PDF, etc.)
 
-## 📂 File Descriptions
-app.py
+## 📁 Repository Structure
+│
+├── .venv/                         # Python virtual environment
+│
+├── chatbot/
+│   └── Chatbot/
+│       ├── __pycache__/           # Python cache files
+│       │
+│       ├── fonts/                 # Custom fonts
+│       │   └── DejaVuSans.ttf
+│       │
+│       ├── generated_images/      # AI-generated images
+│       │   └── image.png
+│       │
+│       ├── outputs/               # Output files (summaries, logs, etc.)
+│       │
+│       ├── .env                   # Environment variables (API keys)
+│       │
+│       ├── app.py                 # Main Streamlit application
+│       ├── auth.py                # User authentication (login/signup)
+│       ├── users.py               # User management & database operations
+│       ├── utils.py               # Core AI utilities and integrations
+│       ├── database.db            # SQLite database (users & chat history)
+│       │
+│       └── generated_image.png    # Sample/generated image
+│
+├── requirements.txt               # Project dependencies
+└── README.md                      # Project documentation
 
-Main Streamlit application
 
-Builds UI (chat input, tabs, upload, buttons)
+## ▶️ Steps to Run the Application
+1️⃣ Clone the Repository
+git clone <repository_url>
+cd MULTI_SOURCE_AI_CHATBOT
 
-Calls functions from utils.py
+2️⃣ Create and Activate Virtual Environment
+python -m venv .venv
+.venv\Scripts\activate
 
-Stores chat history in st.session_state
+3️⃣ Install Dependencies
+pip install -r requirements.txt
 
-utils.py
+4️⃣ Configure Environment Variables
+Create a .env file inside chatbot/Chatbot/ and add:
+GROQ_API_KEY=your_groq_api_key
+HF_API_KEY=your_huggingface_api_key
 
-Contains all helper logic:
+5️⃣ Run the Application
+cd chatbot/Chatbot
+streamlit run app.py
 
-chat_with_llm(prompt) → sends prompt to Groq and returns response
-
-generate_image(prompt) → generates image using HF or Diffusers
-
-summarize_youtube(url) → fetches transcript and summarizes
-
-summarize_pdf(pdf_file) → extracts text and summarizes
-
-requirements.txt
-
-All required Python packages.
-
-.env
-
-Stores API keys:
-
-GROQ_API_KEY=
-
-HF_API_KEY=
-
-README.md
-
-Project explanation (this content).
-
-## Steps to Run the Project
+6️⃣ Open in Browser
+http://localhost:8502
 Step 1: Open project folder cd multi_purpose_ai_chatbot Step 2: Create & activate virtual environment
 
 Windows (CMD)
