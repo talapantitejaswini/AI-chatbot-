@@ -27,32 +27,21 @@ The retrieved information is then filtered, combined, and passed to an AI langua
 
 ## 📁 Repository Structure
 
-── .venv/                         # Python virtual environment
-
-── chatbot/
-   └── Chatbot/
-       ├── __pycache__/           # Python cache files
-       │
-       ├── fonts/                 # Custom fonts
-       │   └── DejaVuSans.ttf
-       │
-       ├── generated_images/      # AI-generated images
-       │   └── image.png
-       │
-       ├── outputs/               # Output files (summaries, logs, etc.)
-       │
-       ├── .env                   # Environment variables (API keys)
-       │
-       ├── app.py                 # Main Streamlit application
-       ├── auth.py                # User authentication (login/signup)
-       ├── users.py               # User management & database operations
-       ├── utils.py               # Core AI utilities and integrations
-     ├── database.db            # SQLite database (users & chat history)
-       │
-       └── generated_image.png    # Sample/generated image
-
-── requirements.txt               # Project dependencies
-└── README.md                      # Project documentation
+-.venv/ – Contains the Python virtual environment and installed dependencies for the project.
+-chatbot/ – Root directory that holds all chatbot-related source code and resources.
+-Chatbot/ – Main application module containing backend logic, UI, and configurations.
+-__pycache__/ – Stores compiled Python bytecode files for faster execution.
+-fonts/ – Contains custom font files used for UI or PDF/image rendering.
+-generated_images/ – Stores AI-generated images created by the chatbot.
+-outputs/ – Holds generated outputs such as summaries, logs, and processed files.
+-.env – Stores sensitive environment variables like API keys securely.
+-app.py – Entry point of the application that runs the Streamlit interface.
+-auth.py – Handles user authentication including login and signup functionality.
+-users.py – Manages user data, chat history, and database operations.
+-utils.py – Contains core AI functions such as chat response generation, summarization, and image generation.
+-database.db – SQLite database used to store user credentials and chat history.
+-requirements.txt – Lists all Python packages required to run the project.
+-README.md – Provides project overview, setup instructions, and usage details.
 
 
 ## ▶️ Steps to Run the Application
