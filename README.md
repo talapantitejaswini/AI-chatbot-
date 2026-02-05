@@ -26,32 +26,32 @@ The retrieved information is then filtered, combined, and passed to an AI langua
 ✅ Error handling (no transcript, invalid links, empty PDF, etc.)
 
 ## 📁 Repository Structure
-│
-├── .venv/                         # Python virtual environment
-│
-├── chatbot/
-│   └── Chatbot/
-│       ├── __pycache__/           # Python cache files
-│       │
-│       ├── fonts/                 # Custom fonts
-│       │   └── DejaVuSans.ttf
-│       │
-│       ├── generated_images/      # AI-generated images
-│       │   └── image.png
-│       │
-│       ├── outputs/               # Output files (summaries, logs, etc.)
-│       │
-│       ├── .env                   # Environment variables (API keys)
-│       │
-│       ├── app.py                 # Main Streamlit application
-│       ├── auth.py                # User authentication (login/signup)
-│       ├── users.py               # User management & database operations
-│       ├── utils.py               # Core AI utilities and integrations
-│       ├── database.db            # SQLite database (users & chat history)
-│       │
-│       └── generated_image.png    # Sample/generated image
-│
-├── requirements.txt               # Project dependencies
+
+── .venv/                         # Python virtual environment
+
+── chatbot/
+   └── Chatbot/
+       ├── __pycache__/           # Python cache files
+       │
+       ├── fonts/                 # Custom fonts
+       │   └── DejaVuSans.ttf
+       │
+       ├── generated_images/      # AI-generated images
+       │   └── image.png
+       │
+       ├── outputs/               # Output files (summaries, logs, etc.)
+       │
+       ├── .env                   # Environment variables (API keys)
+       │
+       ├── app.py                 # Main Streamlit application
+       ├── auth.py                # User authentication (login/signup)
+       ├── users.py               # User management & database operations
+       ├── utils.py               # Core AI utilities and integrations
+     ├── database.db            # SQLite database (users & chat history)
+       │
+       └── generated_image.png    # Sample/generated image
+
+── requirements.txt               # Project dependencies
 └── README.md                      # Project documentation
 
 
