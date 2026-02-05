@@ -84,6 +84,10 @@ Create a file named .env in the project root:
 
 GROQ_API_KEY=your_groq_key_here HF_API_KEY=your_huggingface_key_here Step 5: Run Streamlit app streamlit run app.py
 
-Your app opens at:
-http://localhost:8502#
+## Access the app
+### Local URL:http://localhost:8502#
+
+## 🧑‍🎓 Author
+## 👩‍💻Tejaswini Talapanti Capstone Project - Multi Source AI Chatbot |January 2026
+### 🔗Github:https://github.com/talapantitejaswini 🔗Linkedin:www.linkedin.com/in/tejaswini-talapanti
 Multi-Source-AI-chatbot
