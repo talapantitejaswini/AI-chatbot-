@@ -2,15 +2,7 @@
  
 ## 📌 Problem Statement
 
-People use different tools for different tasks like:
-
--chatting with an AI,
-
--generating images,
-
--summarizing YouTube videos,
-
--extracting summaries from PDFs,
+Existing chatbots are often limited to a single data source and fail to provide comprehensive and accurate responses. This project aims to develop a Multiple Source AI Chatbot that integrates information from various sources and delivers intelligent, context-aware responses through a unified conversational interface.
 
 **Goal: Build one simple chatbot app where a user can do all these tasks from a single UI.**
 
@@ -91,6 +83,5 @@ GROQ_API_KEY=your_groq_key_here HF_API_KEY=your_huggingface_key_here Step 5: Run
 👩‍💻Tejaswini Talapanti
 Capstone Project - Multi Source AI Chatbot
 Training Program | January 2026
-🔗Github:https://github.com/talapantitejaswini 
-🔗Linkedin:www.linkedin.com/in/tejaswini-talapanti
+🔗Github:https://github.com/talapantitejaswini 🔗Linkedin:www.linkedin.com/in/tejaswini-talapanti
 
