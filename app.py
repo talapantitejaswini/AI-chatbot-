@@ -19,15 +19,14 @@ if not st.session_state.logged_in:
     left, right = st.columns([1.3, 1])
 
     with left:
-        st.markdown("## 🤖 AI Multi-Tool Chatbot")
+        st.markdown("## 🤖 Multi Source AI Chatbot")
         st.markdown("""
 ### 📌 Project Description
 AI Chatbot is an intelligent multi-tool assistant that can chat naturally, summarize YouTube videos and PDFs, and generate AI images. It remembers conversations across tools, providing a seamless ChatGPT-like experience in one unified interface.
 
-### 👥 Team Members
+### Author:
 - Tejaswini Talapanti
-- Sahithi Malladi
-- Malleswari Bandaru
+
 """)
 
     with right:
