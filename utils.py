@@ -23,27 +23,27 @@ from huggingface_hub import InferenceClient
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
-    raise ValueError(
-        "GROQ_API_KEY is missing. "
-        "Please add GROQ_API_KEY=your_key to your .env file."
-    )
+    try:
+        import streamlit as st
+        GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+    except Exception:
+        raise ValueError("GROQ_API_KEY is missing.")
 
-# This was missing in your original code.
 groq_client = Groq(api_key=GROQ_API_KEY)
 
 
 # ============================================================
 # HUGGING FACE CLIENT
 # ============================================================
-
 def get_hf_client():
     token = os.getenv("HF_TOKEN")
 
     if not token:
-        raise ValueError(
-            "HF_TOKEN is missing. "
-            "Please add HF_TOKEN=your_token to your .env file."
-        )
+        try:
+            import streamlit as st
+            token = st.secrets["HF_TOKEN"]
+        except Exception:
+            raise ValueError("HF_TOKEN is missing.")
 
     return InferenceClient(api_key=token)
 
