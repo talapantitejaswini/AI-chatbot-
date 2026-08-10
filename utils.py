@@ -1,8 +1,8 @@
 import os
 import re
 
+import streamlit as st
 from dotenv import load_dotenv
-load_dotenv()
 
 from groq import Groq
 from pypdf import PdfReader
@@ -17,17 +17,53 @@ from huggingface_hub import InferenceClient
 
 
 # ============================================================
-# API CLIENTS
+# LOAD LOCAL .ENV
 # ============================================================
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+load_dotenv()
+
+
+# ============================================================
+# HELPER: GET SECRET
+# Supports:
+# 1. Local .env
+# 2. Streamlit Cloud Secrets
+# ============================================================
+
+def get_secret(name):
+    value = os.getenv(name)
+
+    if value:
+        return value
+
+    try:
+        value = st.secrets.get(name)
+        if value:
+            return value
+    except Exception:
+        pass
+
+    return None
+
+
+# ============================================================
+# API KEYS
+# ============================================================
+
+GROQ_API_KEY = get_secret("GROQ_API_KEY")
+HF_TOKEN = get_secret("HF_TOKEN")
+FAL_KEY = get_secret("FAL_KEY")
+
+
+# ============================================================
+# GROQ CLIENT
+# ============================================================
 
 if not GROQ_API_KEY:
-    try:
-        import streamlit as st
-        GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-    except Exception:
-        raise ValueError("GROQ_API_KEY is missing.")
+    raise ValueError(
+        "GROQ_API_KEY is missing. "
+        "Add GROQ_API_KEY to Streamlit Cloud Secrets."
+    )
 
 groq_client = Groq(api_key=GROQ_API_KEY)
 
@@ -35,17 +71,16 @@ groq_client = Groq(api_key=GROQ_API_KEY)
 # ============================================================
 # HUGGING FACE CLIENT
 # ============================================================
+
 def get_hf_client():
-    token = os.getenv("HF_TOKEN")
 
-    if not token:
-        try:
-            import streamlit as st
-            token = st.secrets["HF_TOKEN"]
-        except Exception:
-            raise ValueError("HF_TOKEN is missing.")
+    if not HF_TOKEN:
+        raise ValueError(
+            "HF_TOKEN is missing. "
+            "Add HF_TOKEN to Streamlit Cloud Secrets."
+        )
 
-    return InferenceClient(api_key=token)
+    return InferenceClient(token=HF_TOKEN)
 
 
 # ============================================================
@@ -100,12 +135,17 @@ def chat_with_llm(messages):
 
         for msg in messages[-10:]:
 
-            # Only send valid chat messages
-            if msg.get("role") in ["system", "user", "assistant"]:
+            if msg.get("role") in [
+                "system",
+                "user",
+                "assistant"
+            ]:
 
                 clean_messages.append({
                     "role": msg["role"],
-                    "content": str(msg.get("content", ""))
+                    "content": str(
+                        msg.get("content", "")
+                    )
                 })
 
         if not clean_messages:
@@ -158,6 +198,7 @@ def summarize_pdf(pdf_file):
 Summarize the following section of a PDF clearly.
 
 Focus on:
+
 - Main ideas
 - Important facts
 - Key concepts
@@ -184,7 +225,9 @@ PDF SECTION:
                 response.choices[0].message.content
             )
 
-        combined_text = "\n\n".join(partial_summaries)
+        combined_text = "\n\n".join(
+            partial_summaries
+        )
 
         final_prompt = f"""
 Create one clear and well-structured summary
@@ -245,7 +288,10 @@ def _transcript_items_to_text(items):
 # YOUTUBE SUMMARY
 # ============================================================
 
-def summarize_youtube(url, output_language="English"):
+def summarize_youtube(
+    url,
+    output_language="English"
+):
 
     video_id = extract_video_id(url)
 
@@ -292,7 +338,9 @@ def summarize_youtube(url, output_language="English"):
         # Convert transcript to text
         # ----------------------------------------------------
 
-        text = _transcript_items_to_text(transcript)
+        text = _transcript_items_to_text(
+            transcript
+        )
 
         if not text.strip():
 
@@ -344,10 +392,11 @@ TRANSCRIPT:
         if output_language == "Telugu":
 
             final_prompt = f"""
-Create a simple and easy-to-understand Telugu summary
-of this YouTube video.
+Create a simple and easy-to-understand Telugu
+summary of this YouTube video.
 
-Use Telugu with English technical words when appropriate.
+Use Telugu with English technical words
+when appropriate.
 
 VIDEO SUMMARY:
 
@@ -357,8 +406,8 @@ VIDEO SUMMARY:
         else:
 
             final_prompt = f"""
-Create a simple, clear and well-structured English
-summary of this YouTube video.
+Create a simple, clear and well-structured
+English summary of this YouTube video.
 
 VIDEO SUMMARY:
 
@@ -377,7 +426,12 @@ VIDEO SUMMARY:
             max_tokens=2048
         )
 
-        final_summary = final_response.choices[0].message.content
+        final_summary = (
+            final_response
+            .choices[0]
+            .message
+            .content
+        )
 
         return f"""
 ### 📺 YouTube Video Summary
@@ -393,28 +447,40 @@ VIDEO SUMMARY:
 
     except TranscriptsDisabled:
 
-        return "⚠️ Transcripts are disabled for this video."
+        return (
+            "⚠️ Transcripts are disabled "
+            "for this video."
+        )
 
     except VideoUnavailable:
 
-        return "⚠️ The YouTube video is unavailable."
+        return (
+            "⚠️ The YouTube video is unavailable."
+        )
 
     except Exception as e:
 
-        return f"❌ YouTube Summary Error: {str(e)}"
+        return (
+            f"❌ YouTube Summary Error: {str(e)}"
+        )
 
 
 # ============================================================
 # IMAGE GENERATION
 # ============================================================
 
-def generate_image(prompt, output_path="generated_image.png"):
+def generate_image(
+    prompt,
+    output_path="generated_image.png"
+):
 
     try:
 
-        hf_token = os.getenv("HF_TOKEN")
+        # ----------------------------------------------------
+        # Try Hugging Face
+        # ----------------------------------------------------
 
-        if hf_token:
+        if HF_TOKEN:
 
             client = get_hf_client()
 
@@ -431,16 +497,14 @@ def generate_image(prompt, output_path="generated_image.png"):
         # Fallback to FAL
         # ----------------------------------------------------
 
-        fal_key = os.getenv("FAL_KEY")
-
-        if not fal_key:
+        if not FAL_KEY:
 
             return (
-                "❌ Image generation requires either "
-                "HF_TOKEN or FAL_KEY in your .env file."
+                "❌ Image generation requires "
+                "HF_TOKEN or FAL_KEY."
             )
 
-        os.environ["FAL_KEY"] = fal_key
+        os.environ["FAL_KEY"] = FAL_KEY
 
         result = fal_client.subscribe(
             "fal-ai/flux/dev",
@@ -460,9 +524,15 @@ def generate_image(prompt, output_path="generated_image.png"):
 
         if response.status_code != 200:
 
-            return "❌ Failed to download generated image."
+            return (
+                "❌ Failed to download "
+                "generated image."
+            )
 
-        with open(output_path, "wb") as file:
+        with open(
+            output_path,
+            "wb"
+        ) as file:
 
             file.write(response.content)
 
@@ -470,4 +540,6 @@ def generate_image(prompt, output_path="generated_image.png"):
 
     except Exception as e:
 
-        return f"❌ Image Generation Error: {str(e)}"
+        return (
+            f"❌ Image Generation Error: {str(e)}"
+        )
