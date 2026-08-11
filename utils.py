@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -7,9 +8,10 @@ from dotenv import load_dotenv
 from groq import Groq
 from pypdf import PdfReader
 
-import fal_client
 import requests
 
+# Optional image-generation libraries
+import fal_client
 from huggingface_hub import InferenceClient
 
 
@@ -28,6 +30,7 @@ load_dotenv()
 # ============================================================
 
 def get_secret(name):
+
     value = os.getenv(name)
 
     if value:
@@ -35,8 +38,10 @@ def get_secret(name):
 
     try:
         value = st.secrets.get(name)
+
         if value:
             return value
+
     except Exception:
         pass
 
@@ -57,12 +62,15 @@ FAL_KEY = get_secret("FAL_KEY")
 # ============================================================
 
 if not GROQ_API_KEY:
+
     raise ValueError(
         "GROQ_API_KEY is missing. "
         "Add GROQ_API_KEY to Streamlit Cloud Secrets."
     )
 
-groq_client = Groq(api_key=GROQ_API_KEY)
+groq_client = Groq(
+    api_key=GROQ_API_KEY
+)
 
 
 # ============================================================
@@ -72,19 +80,25 @@ groq_client = Groq(api_key=GROQ_API_KEY)
 def get_hf_client():
 
     if not HF_TOKEN:
+
         raise ValueError(
             "HF_TOKEN is missing. "
             "Add HF_TOKEN to Streamlit Cloud Secrets."
         )
 
-    return InferenceClient(token=HF_TOKEN)
+    return InferenceClient(
+        token=HF_TOKEN
+    )
 
 
 # ============================================================
 # TEXT CHUNKING
 # ============================================================
 
-def chunk_text(text, max_chars=3500):
+def chunk_text(
+    text,
+    max_chars=3500
+):
     """
     Split large text into smaller chunks.
     """
@@ -94,7 +108,11 @@ def chunk_text(text, max_chars=3500):
 
     return [
         text[i:i + max_chars]
-        for i in range(0, len(text), max_chars)
+        for i in range(
+            0,
+            len(text),
+            max_chars
+        )
     ]
 
 
@@ -105,16 +123,24 @@ def chunk_text(text, max_chars=3500):
 def extract_video_id(url: str):
 
     patterns = [
+
         r"v=([a-zA-Z0-9_-]{11})",
+
         r"youtu\.be/([a-zA-Z0-9_-]{11})",
+
         r"shorts/([a-zA-Z0-9_-]{11})"
+
     ]
 
     for pattern in patterns:
 
-        match = re.search(pattern, url)
+        match = re.search(
+            pattern,
+            url
+        )
 
         if match:
+
             return match.group(1)
 
     return None
@@ -139,54 +165,86 @@ def chat_with_llm(messages):
             ]:
 
                 clean_messages.append({
+
                     "role": msg["role"],
+
                     "content": str(
-                        msg.get("content", "")
+                        msg.get(
+                            "content",
+                            ""
+                        )
                     )
+
                 })
 
         if not clean_messages:
+
             return "Please enter a message."
 
-        completion = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=clean_messages,
-            temperature=0.7,
-            max_tokens=1024
+        completion = (
+            groq_client
+            .chat
+            .completions
+            .create(
+
+                model="llama-3.1-8b-instant",
+
+                messages=clean_messages,
+
+                temperature=0.7,
+
+                max_tokens=1024
+
+            )
         )
 
-        return completion.choices[0].message.content
+        return (
+            completion
+            .choices[0]
+            .message
+            .content
+        )
 
     except Exception as e:
 
-        return f"❌ Groq API Error: {str(e)}"
+        return (
+            f"❌ Groq API Error: {str(e)}"
+        )
 
 
 # ============================================================
 # PDF SUMMARY
 # ============================================================
 
-
 def summarize_pdf(pdf_file):
 
     try:
 
-        reader = PdfReader(pdf_file)
+        reader = PdfReader(
+            pdf_file
+        )
 
         text = ""
 
         for page in reader.pages:
 
-            page_text = page.extract_text()
+            page_text = (
+                page.extract_text()
+            )
 
             if page_text:
-                text += page_text + "\n"
+
+                text += (
+                    page_text + "\n"
+                )
 
         if not text.strip():
 
-            return "⚠️ Could not extract text from this PDF."
+            return (
+                "⚠️ Could not extract text "
+                "from this PDF."
+            )
 
-        # Use smaller chunks to reduce Groq token usage
         chunks = chunk_text(
             text,
             max_chars=2500
@@ -194,10 +252,8 @@ def summarize_pdf(pdf_file):
 
         partial_summaries = []
 
-        import time
-
         # ----------------------------------------------------
-        # Summarize each PDF section
+        # SUMMARIZE EACH PDF SECTION
         # ----------------------------------------------------
 
         for chunk in chunks:
@@ -214,6 +270,9 @@ Focus only on:
 
 Avoid unnecessary explanation.
 
+Do not add information that is not
+present in the PDF section.
+
 PDF SECTION:
 
 {chunk}
@@ -225,24 +284,33 @@ PDF SECTION:
 
                 try:
 
-                    response = groq_client.chat.completions.create(
+                    response = (
+                        groq_client
+                        .chat
+                        .completions
+                        .create(
 
-                        model="llama-3.1-8b-instant",
+                            model="llama-3.1-8b-instant",
 
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
-                        ],
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": prompt
+                                }
+                            ],
 
-                        temperature=0.2,
+                            temperature=0.2,
 
-                        max_tokens=500
+                            max_tokens=500
+
+                        )
                     )
 
                     partial_summaries.append(
-                        response.choices[0].message.content
+                        response
+                        .choices[0]
+                        .message
+                        .content
                     )
 
                     success = True
@@ -253,7 +321,6 @@ PDF SECTION:
 
                     error_text = str(e)
 
-                    # Groq rate limit
                     if (
                         "429" in error_text
                         or "rate_limit" in error_text
@@ -268,8 +335,8 @@ PDF SECTION:
 
                             return (
                                 "⚠️ Groq rate limit reached. "
-                                "Please wait a few seconds and "
-                                "try the PDF again."
+                                "Please wait a few seconds "
+                                "and try the PDF again."
                             )
 
                     else:
@@ -279,23 +346,27 @@ PDF SECTION:
             if not success:
 
                 return (
-                    "⚠️ Could not summarize the PDF section."
+                    "⚠️ Could not summarize "
+                    "the PDF section."
                 )
 
         # ----------------------------------------------------
-        # Combine section summaries
+        # COMBINE SUMMARIES
         # ----------------------------------------------------
 
-        combined_text = "\n\n".join(
-            partial_summaries
+        combined_text = (
+            "\n\n".join(
+                partial_summaries
+            )
         )
 
-        # Prevent the final request from becoming too large
-        combined_text = combined_text[:7000]
+        combined_text = combined_text[
+            :7000
+        ]
 
         final_prompt = f"""
-Create one concise and well-structured summary
-from the PDF section summaries below.
+Create one concise and well-structured
+summary from the PDF section summaries below.
 
 Use:
 
@@ -303,13 +374,16 @@ Use:
 - Headings where useful
 - Bullet points for important information
 
+Do not add information that is not present
+in the section summaries.
+
 SECTION SUMMARIES:
 
 {combined_text}
 """
 
         # ----------------------------------------------------
-        # Final summary request
+        # FINAL SUMMARY
         # ----------------------------------------------------
 
         for attempt in range(3):
@@ -334,6 +408,7 @@ SECTION SUMMARIES:
                         temperature=0.2,
 
                         max_tokens=700
+
                     )
                 )
 
@@ -361,9 +436,10 @@ SECTION SUMMARIES:
                     else:
 
                         return (
-                            "⚠️ Groq rate limit reached while "
-                            "creating the final summary. "
-                            "Please wait a few seconds and try again."
+                            "⚠️ Groq rate limit reached "
+                            "while creating the final "
+                            "summary. Please wait a few "
+                            "seconds and try again."
                         )
 
                 else:
@@ -372,26 +448,27 @@ SECTION SUMMARIES:
 
     except Exception as e:
 
-        return f"❌ PDF Summary Error: {str(e)}"
+        return (
+            f"❌ PDF Summary Error: {str(e)}"
+        )
 
 
 # ============================================================
-# YOUTUBE TRANSCRIPT CONVERSION
-# ============================================================
-# ============================================================
-# YOUTUBE TRANSCRIPT CONVERSION
+# CLEAN YOUTUBE TRANSCRIPT
 # ============================================================
 
 def _clean_youtube_transcript(text):
     """
-    Clean transcript returned by youtube-transcript.ai.
-    Removes metadata and timestamps.
+    Clean transcript returned by
+    youtube-transcript.ai.
     """
 
     if not text:
+
         return ""
 
     lines = text.splitlines()
+
     cleaned_lines = []
 
     for line in lines:
@@ -399,29 +476,36 @@ def _clean_youtube_transcript(text):
         line = line.strip()
 
         if not line:
+
             continue
 
-        # Remove metadata lines
-        if line.startswith("# Transcript:"):
+        # Remove metadata
+        if line.startswith(
+            "# Transcript:"
+        ):
             continue
 
-        if line.startswith("Source video:"):
+        if line.startswith(
+            "Source video:"
+        ):
             continue
 
-        if line.startswith("Language:"):
+        if line.startswith(
+            "Language:"
+        ):
             continue
 
-        if line.startswith("Other available languages:"):
+        if line.startswith(
+            "Other available languages:"
+        ):
             continue
 
-        if line.startswith("To request a specific language:"):
+        if line.startswith(
+            "To request a specific language:"
+        ):
             continue
 
-        # Remove timestamps like:
-        # [00:01]
-        # [1:25]
-        # [01:20:30]
-
+        # Remove timestamps
         line = re.sub(
             r"^\[\d{1,2}:\d{2}(?::\d{2})?\]\s*",
             "",
@@ -429,21 +513,34 @@ def _clean_youtube_transcript(text):
         )
 
         if line:
-            cleaned_lines.append(line)
 
-    return " ".join(cleaned_lines).strip()
+            cleaned_lines.append(
+                line
+            )
+
+    return " ".join(
+        cleaned_lines
+    ).strip()
 
 
 # ============================================================
 # YOUTUBE SUMMARY
 # ============================================================
 
-def summarize_youtube(url, output_language="English"):
+def summarize_youtube(
+    url,
+    output_language="English"
+):
 
-    video_id = extract_video_id(url)
+    video_id = extract_video_id(
+        url
+    )
 
     if not video_id:
-        return "❌ Invalid YouTube URL."
+
+        return (
+            "❌ Invalid YouTube URL."
+        )
 
     try:
 
@@ -452,54 +549,69 @@ def summarize_youtube(url, output_language="English"):
         # ----------------------------------------------------
 
         transcript_url = (
-            f"https://youtube-transcript.ai/transcript/{video_id}.txt"
+            f"https://youtube-transcript.ai/"
+            f"transcript/{video_id}.txt"
         )
 
         response = requests.get(
-            transcript_url,
-            params={"lang": "en"},
-            timeout=30
-        )
 
-        # ----------------------------------------------------
-        # CHECK RESPONSE
-        # ----------------------------------------------------
+            transcript_url,
+
+            params={
+                "lang": "en"
+            },
+
+            timeout=30
+
+        )
 
         if response.status_code != 200:
 
             return (
-                "❌ Could not retrieve the transcript for this "
-                "YouTube video.\n\n"
+                "❌ Could not retrieve the "
+                "YouTube transcript.\n\n"
+
                 "Possible reasons:\n"
+
                 "• The video has no captions\n"
                 "• The video is private or unavailable\n"
                 "• The transcript service is temporarily unavailable\n\n"
-                "Please try another public YouTube video."
+
+                "Please try another public "
+                "YouTube video."
             )
 
-        raw_text = response.text.strip()
+        raw_text = (
+            response.text.strip()
+        )
 
         if not raw_text:
 
             return (
-                "⚠️ The YouTube transcript is empty or unavailable."
+                "⚠️ The YouTube transcript "
+                "is empty or unavailable."
             )
 
         # ----------------------------------------------------
         # CLEAN TRANSCRIPT
         # ----------------------------------------------------
 
-        text = _clean_youtube_transcript(raw_text)
+        text = (
+            _clean_youtube_transcript(
+                raw_text
+            )
+        )
 
         if not text:
 
             return (
-                "⚠️ Could not extract readable text "
-                "from this YouTube transcript."
+                "⚠️ Could not extract "
+                "readable text from this "
+                "YouTube transcript."
             )
 
         # ----------------------------------------------------
-        # LIMIT EXTREMELY LARGE TRANSCRIPTS
+        # CHUNK TRANSCRIPT
         # ----------------------------------------------------
 
         chunks = chunk_text(
@@ -510,13 +622,14 @@ def summarize_youtube(url, output_language="English"):
         summaries = []
 
         # ----------------------------------------------------
-        # SUMMARIZE EACH CHUNK
+        # SUMMARIZE CHUNKS
         # ----------------------------------------------------
 
         for chunk in chunks:
 
             prompt = f"""
-Summarize the following YouTube transcript section.
+Summarize the following YouTube
+transcript section.
 
 Focus on:
 
@@ -527,8 +640,8 @@ Focus on:
 
 Keep the summary concise and accurate.
 
-Do not add information that is not present
-in the transcript.
+Do not add information that is not
+present in the transcript.
 
 TRANSCRIPT SECTION:
 
@@ -537,24 +650,33 @@ TRANSCRIPT SECTION:
 
             try:
 
-                response = groq_client.chat.completions.create(
+                response = (
+                    groq_client
+                    .chat
+                    .completions
+                    .create(
 
-                    model="llama-3.1-8b-instant",
+                        model="llama-3.1-8b-instant",
 
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
 
-                    temperature=0.2,
+                        temperature=0.2,
 
-                    max_tokens=500
+                        max_tokens=500
+
+                    )
                 )
 
                 summaries.append(
-                    response.choices[0].message.content
+                    response
+                    .choices[0]
+                    .message
+                    .content
                 )
 
             except Exception as e:
@@ -565,22 +687,28 @@ TRANSCRIPT SECTION:
 
                     return (
                         "⚠️ Groq rate limit reached. "
-                        "Please wait a few seconds and try again."
+                        "Please wait a few seconds "
+                        "and try again."
                     )
 
                 return (
-                    f"❌ Error while summarizing transcript: "
-                    f"{error_text}"
+                    "❌ Error while summarizing "
+                    f"transcript: {error_text}"
                 )
 
         # ----------------------------------------------------
         # COMBINE SUMMARIES
         # ----------------------------------------------------
 
-        combined = "\n\n".join(summaries)
+        combined = (
+            "\n\n".join(
+                summaries
+            )
+        )
 
-        # Keep final prompt within reasonable size
-        combined = combined[:7000]
+        combined = combined[
+            :7000
+        ]
 
         # ----------------------------------------------------
         # FINAL SUMMARY PROMPT
@@ -589,8 +717,8 @@ TRANSCRIPT SECTION:
         if output_language == "Telugu":
 
             final_prompt = f"""
-Create a simple and easy-to-understand Telugu
-summary of this YouTube video.
+Create a simple and easy-to-understand
+Telugu summary of this YouTube video.
 
 Use Telugu with English technical words
 where appropriate.
@@ -602,8 +730,8 @@ Use:
 - Key concepts
 - Main conclusion
 
-Do not add information that is not present
-in the provided content.
+Do not add information that is not
+present in the provided content.
 
 VIDEO CONTENT:
 
@@ -613,8 +741,8 @@ VIDEO CONTENT:
         else:
 
             final_prompt = f"""
-Create a clear and well-structured English
-summary of this YouTube video.
+Create a clear and well-structured
+English summary of this YouTube video.
 
 Use:
 
@@ -625,8 +753,8 @@ Use:
 
 Use headings and bullet points where useful.
 
-Do not add information that is not present
-in the provided content.
+Do not add information that is not
+present in the provided content.
 
 VIDEO CONTENT:
 
@@ -637,20 +765,26 @@ VIDEO CONTENT:
         # FINAL GROQ REQUEST
         # ----------------------------------------------------
 
-        final_response = groq_client.chat.completions.create(
+        final_response = (
+            groq_client
+            .chat
+            .completions
+            .create(
 
-            model="llama-3.1-8b-instant",
+                model="llama-3.1-8b-instant",
 
-            messages=[
-                {
-                    "role": "user",
-                    "content": final_prompt
-                }
-            ],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": final_prompt
+                    }
+                ],
 
-            temperature=0.2,
+                temperature=0.2,
 
-            max_tokens=1000
+                max_tokens=1000
+
+            )
         )
 
         final_summary = (
@@ -673,15 +807,16 @@ VIDEO CONTENT:
     except requests.exceptions.Timeout:
 
         return (
-            "❌ YouTube transcript request timed out. "
-            "Please try again."
+            "❌ YouTube transcript request "
+            "timed out. Please try again."
         )
 
     except requests.exceptions.ConnectionError:
 
         return (
-            "❌ Could not connect to the YouTube transcript "
-            "service. Please try again later."
+            "❌ Could not connect to the "
+            "YouTube transcript service. "
+            "Please try again later."
         )
 
     except Exception as e:
@@ -692,203 +827,14 @@ VIDEO CONTENT:
 
             return (
                 "⚠️ Groq rate limit reached. "
-                "Please wait a few seconds and try again."
+                "Please wait a few seconds "
+                "and try again."
             )
 
         return (
-            f"❌ YouTube Summary Error: {error_text}"
+            f"❌ YouTube Summary Error: "
+            f"{error_text}"
         )
-
-
-# ============================================================
-# YOUTUBE SUMMARY
-# ============================================================
-
-def summarize_youtube(url, output_language="English"):
-
-    video_id = extract_video_id(url)
-
-    if not video_id:
-        return "❌ Invalid YouTube URL."
-
-    try:
-        # ----------------------------------------------------
-        # Get transcript from hosted transcript service
-        # ----------------------------------------------------
-
-        transcript_url = (
-            f"https://youtube-transcript.ai/transcript/{video_id}.txt"
-        )
-
-        response = requests.get(
-            transcript_url,
-            params={"lang": "en"},
-            timeout=30
-        )
-
-        if response.status_code != 200:
-            return (
-                "❌ Could not retrieve the YouTube transcript. "
-                "Please try another video."
-            )
-
-        text = response.text.strip()
-
-        if not text:
-            return "⚠️ Transcript is empty or unavailable."
-
-        # ----------------------------------------------------
-        # Remove timestamp formatting if present
-        # ----------------------------------------------------
-
-        lines = text.splitlines()
-
-        cleaned_lines = []
-
-        for line in lines:
-
-            line = line.strip()
-
-            if not line:
-                continue
-
-            # Skip markdown timestamp lines such as:
-            # [00:01] text
-            line = re.sub(
-                r"^\[\d{1,2}:\d{2}(?::\d{2})?\]\s*",
-                "",
-                line
-            )
-
-            cleaned_lines.append(line)
-
-        text = " ".join(cleaned_lines).strip()
-
-        if not text:
-            return "⚠️ Transcript is empty."
-
-        # ----------------------------------------------------
-        # Split transcript
-        # ----------------------------------------------------
-
-        chunks = chunk_text(
-            text,
-            max_chars=2500
-        )
-
-        summaries = []
-
-        # ----------------------------------------------------
-        # Summarize transcript sections
-        # ----------------------------------------------------
-
-        for chunk in chunks:
-
-            prompt = f"""
-Summarize this YouTube transcript section.
-
-Focus on:
-- Main ideas
-- Important facts
-- Key concepts
-- Important conclusions
-
-Keep the summary concise.
-
-TRANSCRIPT:
-
-{chunk}
-"""
-
-            response = groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.2,
-                max_tokens=500
-            )
-
-            summaries.append(
-                response.choices[0].message.content
-            )
-
-        combined = "\n\n".join(summaries)
-
-        # ----------------------------------------------------
-        # Final summary
-        # ----------------------------------------------------
-
-        if output_language == "Telugu":
-
-            final_prompt = f"""
-Create a simple and easy-to-understand Telugu
-summary of this YouTube video.
-
-Use Telugu with English technical words
-where appropriate.
-
-VIDEO CONTENT:
-
-{combined}
-"""
-
-        else:
-
-            final_prompt = f"""
-Create a clear and well-structured English
-summary of this YouTube video.
-
-Use headings and bullet points where useful.
-
-VIDEO CONTENT:
-
-{combined}
-"""
-
-        final_response = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {
-                    "role": "user",
-                    "content": final_prompt
-                }
-            ],
-            temperature=0.2,
-            max_tokens=1000
-        )
-
-        final_summary = (
-            final_response
-            .choices[0]
-            .message
-            .content
-        )
-
-        return f"""
-### 📺 YouTube Video Summary
-
-**Summary Language:** {output_language}
-
----
-
-{final_summary}
-"""
-
-    except Exception as e:
-
-        error_text = str(e)
-
-        if "429" in error_text:
-            return (
-                "⚠️ Groq rate limit reached. "
-                "Please wait a few seconds and try again."
-            )
-
-        return f"❌ YouTube Summary Error: {error_text}"
 
 
 # ============================================================
@@ -900,11 +846,24 @@ def generate_image(
     output_path="generated_image.png"
 ):
 
-    # ========================================================
-    # TRY HUGGING FACE FIRST
-    # ========================================================
+    # --------------------------------------------------------
+    # CHECK WHETHER AN IMAGE PROVIDER IS CONFIGURED
+    # --------------------------------------------------------
+
+    if not HF_TOKEN and not FAL_KEY:
+
+        return (
+            "⚠️ Image generation is currently "
+            "unavailable because no image "
+            "generation provider is configured."
+        )
 
     hf_error = None
+    fal_error = None
+
+    # --------------------------------------------------------
+    # TRY HUGGING FACE
+    # --------------------------------------------------------
 
     if HF_TOKEN:
 
@@ -913,11 +872,19 @@ def generate_image(
             client = get_hf_client()
 
             image = client.text_to_image(
+
                 prompt,
-                model="stabilityai/stable-diffusion-3.5-large"
+
+                model=(
+                    "stabilityai/"
+                    "stable-diffusion-3.5-large"
+                )
+
             )
 
-            image.save(output_path)
+            image.save(
+                output_path
+            )
 
             return output_path
 
@@ -925,13 +892,9 @@ def generate_image(
 
             hf_error = str(e)
 
-            # Hugging Face failed.
-            # Continue to FAL instead of stopping.
-            pass
-
-    # ========================================================
-    # FALLBACK TO FAL
-    # ========================================================
+    # --------------------------------------------------------
+    # TRY FAL
+    # --------------------------------------------------------
 
     if FAL_KEY:
 
@@ -940,19 +903,31 @@ def generate_image(
             os.environ["FAL_KEY"] = FAL_KEY
 
             result = fal_client.subscribe(
+
                 "fal-ai/flux/dev",
+
                 arguments={
+
                     "prompt": prompt,
+
                     "image_size": "square_hd",
+
                     "num_images": 1
+
                 }
+
             )
 
-            image_url = result["images"][0]["url"]
+            image_url = (
+                result["images"][0]["url"]
+            )
 
             response = requests.get(
+
                 image_url,
+
                 timeout=60
+
             )
 
             response.raise_for_status()
@@ -962,32 +937,29 @@ def generate_image(
                 "wb"
             ) as file:
 
-                file.write(response.content)
+                file.write(
+                    response.content
+                )
 
             return output_path
 
         except Exception as e:
 
-            return (
-                "❌ Image Generation Error\n\n"
-                f"Hugging Face failed: "
-                f"{hf_error or 'Not available'}\n\n"
-                f"FAL failed: {str(e)}"
-            )
+            fal_error = str(e)
 
-    # ========================================================
-    # NO IMAGE PROVIDER
-    # ========================================================
-
-    if hf_error:
-
-        return (
-            "❌ Image Generation Error\n\n"
-            "Hugging Face image generation failed, "
-            "and FAL_KEY is not configured."
-        )
+    # --------------------------------------------------------
+    # BOTH PROVIDERS FAILED
+    # --------------------------------------------------------
 
     return (
-        "❌ Image generation requires "
-        "HF_TOKEN or FAL_KEY."
+        "⚠️ Image generation is currently "
+        "unavailable.\n\n"
+
+        "The configured image-generation "
+        "providers do not have available "
+        "credits at the moment.\n\n"
+
+        "Please try again after the provider "
+        "credits/balance are available."
     )
+
