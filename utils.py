@@ -900,13 +900,15 @@ def generate_image(
     output_path="generated_image.png"
 ):
 
-    try:
+    # ========================================================
+    # TRY HUGGING FACE FIRST
+    # ========================================================
 
-        # ----------------------------------------------------
-        # Try Hugging Face
-        # ----------------------------------------------------
+    hf_error = None
 
-        if HF_TOKEN:
+    if HF_TOKEN:
+
+        try:
 
             client = get_hf_client()
 
@@ -919,53 +921,73 @@ def generate_image(
 
             return output_path
 
-        # ----------------------------------------------------
-        # Fallback to FAL
-        # ----------------------------------------------------
+        except Exception as e:
 
-        if not FAL_KEY:
+            hf_error = str(e)
 
-            return (
-                "❌ Image generation requires "
-                "HF_TOKEN or FAL_KEY."
+            # Hugging Face failed.
+            # Continue to FAL instead of stopping.
+            pass
+
+    # ========================================================
+    # FALLBACK TO FAL
+    # ========================================================
+
+    if FAL_KEY:
+
+        try:
+
+            os.environ["FAL_KEY"] = FAL_KEY
+
+            result = fal_client.subscribe(
+                "fal-ai/flux/dev",
+                arguments={
+                    "prompt": prompt,
+                    "image_size": "square_hd",
+                    "num_images": 1
+                }
             )
 
-        os.environ["FAL_KEY"] = FAL_KEY
+            image_url = result["images"][0]["url"]
 
-        result = fal_client.subscribe(
-            "fal-ai/flux/dev",
-            arguments={
-                "prompt": prompt,
-                "image_size": "square_hd",
-                "num_images": 1
-            }
-        )
-
-        image_url = result["images"][0]["url"]
-
-        response = requests.get(
-            image_url,
-            timeout=60
-        )
-
-        if response.status_code != 200:
-
-            return (
-                "❌ Failed to download "
-                "generated image."
+            response = requests.get(
+                image_url,
+                timeout=60
             )
 
-        with open(
-            output_path,
-            "wb"
-        ) as file:
+            response.raise_for_status()
 
-            file.write(response.content)
+            with open(
+                output_path,
+                "wb"
+            ) as file:
 
-        return output_path
+                file.write(response.content)
 
-    except Exception as e:
+            return output_path
+
+        except Exception as e:
+
+            return (
+                "❌ Image Generation Error\n\n"
+                f"Hugging Face failed: "
+                f"{hf_error or 'Not available'}\n\n"
+                f"FAL failed: {str(e)}"
+            )
+
+    # ========================================================
+    # NO IMAGE PROVIDER
+    # ========================================================
+
+    if hf_error:
 
         return (
-            f"❌ Image Generation Error: {str(e)}"
+            "❌ Image Generation Error\n\n"
+            "Hugging Face image generation failed, "
+            "and FAL_KEY is not configured."
         )
+
+    return (
+        "❌ Image generation requires "
+        "HF_TOKEN or FAL_KEY."
+    )
