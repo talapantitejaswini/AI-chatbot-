@@ -123,6 +123,10 @@ HF_API_KEY=your_huggingface_api_key
 streamlit run app.py
 ```
 
+## Deploy
+
+https://multisource.streamlit.app/
+
 Open your browser and visit:
 
 ```
